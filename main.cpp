@@ -1,7 +1,6 @@
-#include <iostream>
+#include <cstdio>
 #include <vector>
 #include <unordered_map>
-#include <algorithm>
 
 using namespace std;
 
@@ -47,22 +46,20 @@ public:
 };
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(nullptr);
-    
     int t;
-    cin >> t;
+    scanf("%d", &t);
     
     while (t--) {
         int n;
-        cin >> n;
+        scanf("%d", &n);
         
         vector<pair<pair<int, int>, int>> constraints;
+        constraints.reserve(n);
         
         // Read all constraints
         for (int i = 0; i < n; i++) {
             int x, y, e;
-            cin >> x >> y >> e;
+            scanf("%d %d %d", &x, &y, &e);
             constraints.push_back({{x, y}, e});
         }
         
@@ -94,7 +91,7 @@ int main() {
             }
         }
         
-        cout << (possible ? "YES" : "NO") << '\n';
+        printf("%s\n", possible ? "YES" : "NO");
     }
     
     return 0;
