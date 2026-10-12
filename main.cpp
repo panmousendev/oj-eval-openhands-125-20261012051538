@@ -1,41 +1,34 @@
 #include <cstdio>
 #include <vector>
 #include <unordered_map>
-#include <algorithm>
 
 using namespace std;
 
-// Coordinate compression based Union-Find
 class UnionFind {
 private:
-    vector<int> parent;
-    vector<int> rank;
-    int n;
+    unordered_map<int, int> parent;
+    unordered_map<int, int> rank;
     
-public:
-    UnionFind(int size) {
-        n = size;
-        parent.resize(n);
-        rank.resize(n, 0);
-        for (int i = 0; i < n; i++) {
-            parent[i] = i;
+    int findRoot(int x) {
+        if (parent.find(x) == parent.end()) {
+            parent[x] = x;
+            rank[x] = 0;
+            return x;
         }
-    }
-    
-    int find(int x) {
+        
         if (parent[x] != x) {
-            parent[x] = find(parent[x]); // Path compression
+            parent[x] = findRoot(parent[x]);
         }
         return parent[x];
     }
-    
-    void unite(int x, int y) {
-        int rootX = find(x);
-        int rootY = find(y);
+
+public:
+    void merge(int x, int y) {
+        int rootX = findRoot(x);
+        int rootY = findRoot(y);
         
         if (rootX == rootY) return;
         
-        // Union by rank
         if (rank[rootX] < rank[rootY]) {
             parent[rootX] = rootY;
         } else if (rank[rootX] > rank[rootY]) {
@@ -46,8 +39,13 @@ public:
         }
     }
     
-    bool connected(int x, int y) {
-        return find(x) == find(y);
+    bool areConnected(int x, int y) {
+        return findRoot(x) == findRoot(y);
+    }
+    
+    void clear() {
+        parent.clear();
+        rank.clear();
     }
 };
 
@@ -55,63 +53,47 @@ int main() {
     int t;
     scanf("%d", &t);
     
+    UnionFind uf;
+    
     while (t--) {
         int n;
         scanf("%d", &n);
         
-        vector<tuple<int, int, int>> constraints;
-        vector<int> variables;
+        // Vectors to store constraints
+        vector<pair<int, int>> equals;
+        vector<pair<int, int>> notEquals;
         
-        // Read all constraints and collect variables
+        // Read all constraints
         for (int i = 0; i < n; i++) {
             int x, y, e;
             scanf("%d %d %d", &x, &y, &e);
-            constraints.push_back(make_tuple(x, y, e));
-            variables.push_back(x);
-            variables.push_back(y);
+            
+            if (e == 1) {
+                equals.push_back({x, y});
+            } else {
+                notEquals.push_back({x, y});
+            }
         }
         
-        // Coordinate compression
-        sort(variables.begin(), variables.end());
-        auto last = unique(variables.begin(), variables.end());
-        variables.erase(last, variables.end());
-        
-        // Create mapping from original variable to compressed index
-        unordered_map<int, int> comp_map;
-        for (size_t i = 0; i < variables.size(); i++) {
-            comp_map[variables[i]] = static_cast<int>(i);
-        }
-        
-        // Create UnionFind with compressed coordinates
-        UnionFind uf(variables.size());
-        bool possible = true;
+        bool valid = true;
         
         // Process all equality constraints
-        for (const auto& constraint : constraints) {
-            int x = get<0>(constraint);
-            int y = get<1>(constraint);
-            int e = get<2>(constraint);
-            
-            if (e == 1) { // Equality
-                uf.unite(comp_map[x], comp_map[y]);
-            }
+        for (const auto& p : equals) {
+            uf.merge(p.first, p.second);
         }
         
         // Check all inequality constraints
-        for (const auto& constraint : constraints) {
-            int x = get<0>(constraint);
-            int y = get<1>(constraint);
-            int e = get<2>(constraint);
-            
-            if (e == 0) { // Inequality
-                if (uf.connected(comp_map[x], comp_map[y])) {
-                    possible = false;
-                    break;
-                }
+        for (const auto& p : notEquals) {
+            if (uf.areConnected(p.first, p.second)) {
+                valid = false;
+                break;
             }
         }
         
-        printf("%s\n", possible ? "YES" : "NO");
+        printf("%s\n", valid ? "YES" : "NO");
+        
+        // Clear UnionFind for next test case
+        uf.clear();
     }
     
     return 0;
