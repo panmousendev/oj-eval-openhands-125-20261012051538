@@ -78,8 +78,8 @@ int main() {
         
         // Create mapping from original variable to compressed index
         unordered_map<int, int> comp_map;
-        for (int i = 0; i < variables.size(); i++) {
-            comp_map[variables[i]] = i;
+        for (size_t i = 0; i < variables.size(); i++) {
+            comp_map[variables[i]] = static_cast<int>(i);
         }
         
         // Create UnionFind with compressed coordinates
